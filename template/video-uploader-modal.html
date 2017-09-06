@@ -1,0 +1,275 @@
+<style>
+    #videoUploaderModal {
+        position: relative;
+        height: 100%;
+    }
+
+    #videoUploaderModal .form-inline .form-group {
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    #videoUploaderModal input[type=radio] {
+        margin-right: 20px;
+    }
+
+    #videoUploaderModal p {
+        margin-left: 100px;
+        background: #e0eaf7;
+        padding: 5px 6px;
+        display: inline-block;
+        border-radius: 4px;
+        -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+        -o-border-radius: 4px;
+        -ms-border-radius: 40px;
+        color: #6b6b6b;
+        letter-spacing: 1px;
+    }
+
+    #videoUploaderModal .vum-footer {
+        position: absolute;
+        right: 0;
+        bottom: 20px;
+    }
+
+    #videoUploaderModal .vum-footer .btn {
+        width: 100px;
+        margin-right: 20px;
+    }
+
+    #videoUploaderModal #vumVideoUploader {
+        width: 240px;
+        height: 135px;
+        border: 1px solid #ccc;
+        margin-left: 100px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    #videoUploaderModal #vumImageUploader {
+        width: 180px;
+        height: 180px;
+        border: 1px solid #ccc;
+        margin-left: 100px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    #videoUploaderModal #vumVideoUploader .vum-uploader-info,
+    #videoUploaderModal #vumImageUploader .vum-uploader-info {
+        position: absolute;
+        bottom: -25px;
+        background: rgba(0, 0, 0, 0.5);
+        left: 0;
+        right: 0;
+        text-align: center;
+        height: 25px;
+        line-height: 25px;
+        color: #fff;
+        transition: bottom 0.5s;
+        -webkit-transition: bottom 0.5s;
+        /* Safari */
+    }
+
+    #videoUploaderModal #vumVideoUploader:hover .vum-uploader-info,
+    #videoUploaderModal #vumImageUploader:hover .vum-uploader-info {
+        bottom: 0;
+    }
+
+    #videoUploaderModal .webuploader-pick {
+        display: inline-block;
+        cursor: pointer;
+        width: inherit;
+        height: inherit;
+        background: none;
+        padding: 0;
+    }
+
+    #videoUploaderModal #vumImageUploader .webuploader-pick img {
+        width: 100%;
+        height: 100%;
+    }
+
+    #videoUploaderModal #vumVideoUploader .webuploader-pick img {
+        width: 100%;
+    }
+
+    #videoUploaderModal #vumImageUploader .webuploader-pick .vumImageWrapper,
+    {
+        width: inherit;
+        height: inherit;
+    }
+
+    #videoUploaderModal #vumVideoUploader .webuploader-pick .vumVideoWrapper {
+        width: inherit;
+        height: inherit;
+    }
+
+    #videoUploaderModal #vumVideoImport {
+        display: none;
+        margin-left: 100px;
+    }
+
+    #videoUploaderModal .vumImageFileWrapper,
+    #videoUploaderModal .vumVideoFileWrapper {
+        height: inherit;
+    }
+
+    #videoUploaderModal .vumVideoFileWrapper img {
+        display: none;
+    }
+
+    #videoUploaderModal #vumVideoImport input {
+        width: 300px!important;
+        height: 30px;
+    }
+
+    #videoUploaderModal .progress.progress-striped.active {
+        height: 20px;
+        /* background: #fff; */
+        /* color: #000; */
+        position: absolute;
+        bottom: 60px;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    #videoUploaderModal .progress-bar {
+        height: 20px;
+        background: rgba(92, 184, 92, 0.7);
+        color: #fff;
+    }
+
+    #videoUploaderModal .progress-status {
+        position: absolute;
+        top: 1px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        color: #fff;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+
+    #videoUploaderModal .uploader-error {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        text-align: center;
+        color: white;
+        width: 100%;
+        background: rgb(193, 46, 46);
+        height: 25px;
+        z-index: 10;
+        line-height: 25px;
+    }
+
+    #videoUploaderModal #video video {
+        width: 240px;
+        height: 120px;
+    }
+
+    #vumSelectDialog table tr th,
+    table tr td {
+        width: 25%;
+    }
+</style>
+<!-- 视频上传dialog模板 -->
+<script type="text/template" id="j-vum-uploader-template">
+    <div id="videoUploaderModal">
+        <div class="form-inline">
+            <div class="form-group">
+                <label class="ui-label ui-label-md tr"> 上传视频： </label>
+                <label>本地视频&nbsp;&nbsp;
+                    <input type="radio" name="radio" checked="checked" data-type="0"> </label>
+                <label>网络视频&nbsp;&nbsp;
+                    <input type="radio" name="radio" data-type="1"> </label>
+            </div>
+            <div class="form-group">
+                <div id="vumVideoUploader"> <i class="fa fa-plus"></i>
+                    <div class="vumVideoWrapper"> </div> <span class="vum-uploader-info">点击上传视频</span> </div>
+                <div id="video" style="display: none"></div>
+                <div id="vumVideoImport">
+                    <input class="form-control form-control-md" placeholder="输入网络视频链接"> </div>
+            </div>
+            <div class="form-group" id="vumVideoUploaderInfo">
+                <p>本地视频支持30秒-3分钟时长的视频。
+                    <br/> 支持格式：mp4、mov、flv、f4v。
+                    <br/> 视频尺寸建议：16：9或1：1。
+                    <br/> 最大不能操作30M。</p>
+            </div>
+            <div class="form-group">
+                <label class="ui-label ui-label-md tr"> 视频封面： </label>
+                <label>使用视频第一帧截图&nbsp;&nbsp;
+                    <input type="radio" name="radio-poster" data-type="0"> </label>
+                <label>上传图片&nbsp;&nbsp;
+                    <input type="radio" name="radio-poster" data-type="1" checked="checked"> </label>
+            </div>
+            <div class="form-group">
+                <div id="vumImageUploader"> <i class="fa fa-plus"></i>
+                    <div class="vumImageWrapper"> </div> <span class="vum-uploader-info">点击上传封面（640 * 640）</span> </div>
+            </div>
+        </div>
+        <div class="vum-footer"> <a class="btn btn-success btn-sm vum-uploader">上传</a> <a class="btn btn-default btn-sm vum-close">取消</a> </div>
+    </div>
+</script>
+<!-- 视频上传dialog模板 end-->
+<!-- 视频选择dialog模板 -->
+<script type="text/template" id="j-vum-select-template">
+    <div id="vumSelectDialog">
+        <div class="form-inline mb10 tr">
+            <div class="form-group" style="margin-bottom: 10px;">
+                <div class="input-group">
+                    <input class="form-control form-control-lg" id="vumKeywords"> <span class="input-group-addon btn-success btn btn-sm" style="color:#fff;" id="vumSearch">搜索</span> </div>
+            </div>
+        </div>
+        <div class="ui-box" style="overflow: scroll;height: 420px; box-shadow: 0 0 1px rgba(0,0,0,0.2);">
+            <table class="table ui-table table-striped jambo_table bulk_action">
+                <thead>
+                <tr>
+                    <th class="tc">图片</th>
+                    <th>名称</th>
+                    <th class="tc">时间</th>
+                    <th class="tc">操作</th>
+                </tr>
+                </thead>
+                <tbody class="imgList"> </tbody>
+            </table>
+        </div>
+        <div class="ui-box">
+            <div class="ui-box" style="position: absolute;bottom: 25px;right: 10px;">
+                <div class="widget-list">
+                    <div> </div>
+                    <div class="list-page">
+                        <div class="ui-pagination videoUploaderModalPagination"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<!-- 视频选择dialog模板 end -->
+<!-- 视频选择模板 -->
+<script type="text/template" id="j-vum-select-video-template">
+    <% if( items.length > 0 ){ %>
+    <% _.each(items,function(item,index){ %>
+    <tr>
+        <td class="tc"><a class="j-blank-link" target="_blank" href="<%= item.file_url %>"><img style="width: 60px;height: 60px;" src="<%= item.file_url %>"></a></td>
+        <td>
+            <%= item.file_name %>
+        </td>
+        <td class="j-time tc">
+            <%= item.create_time %>
+        </td>
+        <td class="tc"> <a href="javascript:;" class="vumSelect tc" data-furl="<%= item.file_url %>">选择</a> </td>
+    </tr>
+    <% }) %>
+    <% }else{ %>
+    <tr>
+        <td class="tc" colspan="18">没有任何记录~</td>
+    </tr>
+    <% } %>
+</script>
+<!-- 视频选择模板 end -->
