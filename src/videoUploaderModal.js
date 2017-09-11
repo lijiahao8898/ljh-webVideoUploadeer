@@ -5,6 +5,7 @@
         this.elementTarget = ele;
 
         this.defaultOptions = {
+            wrapper: '',
             type: 0,                                    // type 0 展示视频选择列表 1 展示选择视频弹窗
             videoSize: 1024 * 1024 * 30,                // 单个视频的尺寸大小
             videoListNum: 1,                            // 支持视频的个数
@@ -33,7 +34,17 @@
                 page_size: 20,
                 vpage: 10
             };
-            this.ossUrl = 'http://mockuai-video.oss-cn-hangzhou.aliyuncs.com/';
+            if (location.host.indexOf('dev') === 0) {
+                this.host = 'http://xws.seller.mockuai.com:38080/bossmanager/';
+            }else{
+                this.host = 'http://' + location.host + '/bossmanager/';
+            }
+            this.ossVideoUrl = 'http://mockuai-video.oss-cn-hangzhou.aliyuncs.com/';
+            this.ossImageUrl = 'http://mockuai-oss.oss-cn-hangzhou.aliyuncs.com';
+            this.uploaderUrl = this.host + 'upload_item_video.do';
+            this.posterUrl = this.host + 'upload_video_shot.do';
+            this.callbackUrl = this.host + 'add_video.do';
+            this.videoListUrl = this.host + 'query_video.do';
             this.search_key = {};
             cobra._msgBox.init();
             this.addEvent();
@@ -47,7 +58,7 @@
          */
         openDialog: function (type) {
             var that = this;
-            if(that.vumUploaderPopup){
+            if (that.vumUploaderPopup) {
                 that.vumUploaderPopup.close();
                 that.videoUploader && that.videoUploader.destroy();
                 that.videoCoverUploader && that.videoCoverUploader.destroy();
@@ -75,27 +86,31 @@
         },
 
         /**
-         * 获取oss上传的必要信息
+         * 获取oss上传的必要信息 - 视频
          * @param uploader
          * @param cb
          */
-        getUploadInfo: function (uploader, cb) {
+        getUploadVideoInfo: function (uploader, cb) {
+            var that = this;
             $.ajax({
-                url: 'http://boss.mockuai.net:38080/bossmanager/upload_item_video.do',
-                type: 'post',
-                dataType: 'json',
+                url: this.uploaderUrl,
+                type: 'get',
+                dataType: 'jsonp',
                 data: {},
                 complete: function (data) {
 
                 },
                 success: function (data) {
+                    if (!that.handlerResponse(data)) {
+                        return;
+                    }
                     // console.log(data);
-                    uploader.options.formData.OSSAccessKeyId = data.accessid;
-                    //uploader.options.formData.key = data.dir + '${filename}';
-                    uploader.options.formData.expire = data.expire;
-                    uploader.options.formData.host = data.host;
-                    uploader.options.formData.policy = data.policy;
-                    uploader.options.formData.signature = data.signature;
+                    uploader.options.formData.OSSAccessKeyId = data.data.accessid;
+                    uploader.options.formData.key = data.data.dir + '${filename}';
+                    uploader.options.formData.expire = data.data.expire;
+                    uploader.options.formData.host = data.data.host;
+                    uploader.options.formData.policy = data.data.policy;
+                    uploader.options.formData.signature = data.data.signature;
                     uploader.options.formData.success_action_status = 200;
                     cb && cb(data);
                 },
@@ -106,7 +121,97 @@
         },
 
         /**
-         * initVideoCoverUploader()
+         * 获取oss上传的必要信息 - poster
+         * @param uploader
+         * @param cb
+         */
+        getUploadCoverInfo: function (uploader, cb) {
+            var that = this;
+            $.ajax({
+                url: this.posterUrl,
+                type: 'get',
+                dataType: 'jsonp',
+                data: {},
+                complete: function (data) {
+
+                },
+                success: function (data) {
+                    if (!that.handlerResponse(data)) {
+                        return;
+                    }
+                    // console.log(data);
+                    uploader.options.formData.OSSAccessKeyId = data.data.accessid;
+                    uploader.options.formData.key = data.data.dir + '${filename}';
+                    uploader.options.formData.expire = data.data.expire;
+                    uploader.options.formData.host = data.data.host;
+                    uploader.options.formData.policy = data.data.policy;
+                    uploader.options.formData.signature = data.data.signature;
+                    uploader.options.formData.success_action_status = 200;
+                    cb && cb(data);
+                },
+                fail: function (data) {
+
+                }
+            });
+        },
+
+        /**
+         * 上传成功后的回调给服务端
+         * @param uploader
+         * @param cb
+         */
+        addVideoToJava: function (videoType) {
+            var that = this;
+            var video_name;
+            var image_url = (this.videoCoverUploader.getFiles()[0]).name;
+
+            if (videoType == 1) {
+                // 网络视频情况
+                video_name = this.importVideo;
+            } else {
+                video_name = (this.videoUploader.getFiles())[0].name;
+            }
+
+            if (!video_name || !image_url) {
+                cobra._msgBox.error('添加记录信息缺失！')
+            }
+            $.ajax({
+                url: this.callbackUrl,
+                type: 'get',
+                dataType: 'jsonp',
+                data: {
+                    video_name: video_name,
+                    video_url: video_name,
+                    image_url: image_url,
+                    type: this.type ? this.type : 1
+                },
+                complete: function (data) {
+
+                },
+                success: function (data) {
+                    if (!that.handlerResponse(data)) {
+                        return;
+                    }
+
+                    if (data.code === 10000) {
+                        cobra._msgBox.done('添加记录成功！');
+                        var p = [];
+                        p.push(data.data);
+                        that.options.uploaderSuccess(p, $(that.elementTarget));
+                        that.vumUploaderPopup.close();
+                    } else {
+                        cobra._msgBox.error('添加记录失败！');
+                    }
+
+                },
+                fail: function (data) {
+                    cobra._msgBox.error('添加记录失败！')
+                }
+            });
+        },
+
+        /**
+         * initVideoUploader()
          * 初始化 视频上传
          */
         initVideoUploader: function () {
@@ -124,7 +229,7 @@
                     biz_code: that.options.biz_code
                 },
 
-                server: that.ossUrl,
+                server: that.ossVideoUrl,
 
                 // 选择文件的按钮。可选。
                 // 内部根据当前运行是创建，可能是input元素，也可能是flash.
@@ -193,7 +298,7 @@
                 },
 
                 // 文件接收服务端。
-                server: that.ossUrl,
+                server: that.ossImageUrl,
 
                 // 选择文件的按钮。可选。
                 // 内部根据当前运行是创建，可能是input元素，也可能是flash.
@@ -249,9 +354,15 @@
         addEvent: function () {
             var that = this;
 
-            $(that.elementTarget).click(function () {
-                that.openDialog(that.options.type)
-            });
+            if (that.options.wrapper && that.options.wrapper !== '') {
+                $(that.options.wrapper).on('click', that.elementTarget, function () {
+                    that.openDialog(that.options.type)
+                });
+            } else {
+                $(that.elementTarget).on('click', function () {
+                    that.openDialog(that.options.type)
+                });
+            }
         },
 
         /**
@@ -268,9 +379,11 @@
                     // 本地视频
                     $('#vumVideoUploader,#vumVideoUploaderInfo').show();
                     $('#vumVideoImport').hide();
+                    that.type = 1;
 
                     $('#videoUploaderModal input[name=radio-poster][data-type="0"]').parent().show();
                 } else if (type === '1') {
+                    that.type = 2;
                     // 网络视频
                     $('#vumVideoUploader,#vumVideoUploaderInfo').hide();
                     $('#vumVideoImport').show();
@@ -286,17 +399,19 @@
             // 上传视频 第一帧和本地上传切换
             $(document).on('change', '#videoUploaderModal [name=radio-poster]', function () {
                 var type = $(this).attr('data-type');
+
                 if (type === '0') {
                     // 视频第一帧封面
-                    $('#vumImageUploader').hide();
+                    // $('#vumImageUploader').hide();
                     that.wuFile && that.videoCoverUploader.addFiles(that.wuFile);
                     console.log(that.videoCoverUploader.getFiles())
                 } else if (type === '1') {
                     // 上传封面
-                    $('#vumImageUploader').show();
+                    // $('#vumImageUploader').show();
                     var id = that.wuFile.id;
                     that.videoCoverUploader.removeFile(id, true);
-                    console.log(that.videoCoverUploader.getFiles())
+                    console.log(that.videoCoverUploader.getFiles());
+                    $('#vumImageUploader .vumImageFileWrapper').remove();
                 }
             });
 
@@ -313,88 +428,137 @@
                 var videoType = $('#videoUploaderModal input[name=radio]:checked').attr('data-type');
                 var coverType = $('#videoUploaderModal input[name=radio-poster]:checked').attr('data-type');
                 var importVideo = $.trim($('#vumVideoImport input').val());
+                if(importVideo.indexOf('http://') !== 0){
+                    importVideo = 'http://' + importVideo;
+                }
+                that.importVideo = importVideo;
                 console.log(coverType);
 
+                if ($('.vumImageFileWrapper.uploadDone').length >= 1 && $('.vumVideoFileWrapper.uploadDone').length >= 1) {
+                    cobra._msgBox.error('当前文件都已上传成功！请重新选择文件');
+                    return false;
+                }
+
                 // 判断视频类型
-                if(videoType == 0){
+                if (videoType == 0) {
                     var videoQueue = that.videoUploader.getFiles();
-                    if(videoQueue.length <= 0 || !videoQueue || videoQueue[0].type != 'video/mp4'){
+                    if (videoQueue.length <= 0 || !videoQueue || videoQueue[0].type != 'video/mp4') {
                         cobra._msgBox.error('未选择视频！');
                         return;
                     }
-                }else if(videoType == 1){
-                    if(importVideo == ''){
+                } else if (videoType == 1) {
+                    if (importVideo == '') {
                         cobra._msgBox.error('网络视频未选择！');
                         return;
                     }
                 }
 
                 // 判断封面类型
-                if(coverType == 0){
+                if (coverType == 0) {
                     // 视频第一帧
                     var videoCover = that.videoCoverUploader.getFiles();
-                    if(videoCover.length <= 0 || !videoCover){
+                    if (videoCover.length <= 0 || !videoCover) {
                         cobra._msgBox.error('视频图片截取失败，请联系管理员！');
                         return;
                     }
-                }else if(coverType == 1){
+                } else if (coverType == 1) {
                     // 本地图片
                     var cover = that.videoCoverUploader.getFiles();
-                    if(cover.length <= 0 || !cover){
+                    if (cover.length <= 0 || !cover) {
                         cobra._msgBox.error('本地图片未选择！');
                         return;
                     }
                 }
 
-                if(videoType == 0){
-                    // 上传video
-                    for (var n = 0; n < $('.vumVideoFileWrapper').length; n++) {
-                        var videoWrapper = $('.vumVideoFileWrapper').eq(n);
-                        var videoFileId = videoWrapper.attr('id');
-                        var videoFail = videoWrapper.hasClass('uploadFail');
-                        var videosuccess = videoWrapper.hasClass('uploadDone');
-                        if (videoFail) {
-                            $('.vumVideoFileWrapper').eq(n).find('div.uploader-error').remove()
-                        }
-                        if (!videosuccess) {
-                            // 上传成功的不再上传
-                            that.getUploadInfo(that.videoUploader, function (data) {
-                                console.log(that.videoUploader.getFiles());
-                                that.videoUploader.options.filename = timer;
-                                that.videoUploader.upload(videoFileId);
-                            });
-                        }else{
-
-                        }
-                    }
-                }
-
-                if(coverType == 1){
-                    // 上传本地图片
-                    for (var i = 0; i < $('.vumImageFileWrapper').length; i++) {
-                        var wrapper = $('.vumImageFileWrapper').eq(i);
-                        var fileId = wrapper.attr('id');
-                        var fail = wrapper.hasClass('uploadFail');
-                        var success = wrapper.hasClass('uploadDone');
-                        if (fail) {
-                            $('.vumImageFileWrapper').eq(i).find('div.uploader-error').remove()
-                        }
-                        if (!success) {
-                            // 上传成功的不再上传
-                            that.getUploadInfo(that.videoCoverUploader, function (data) {
-                                //that.videoCoverUploader.options.formData.name = timer + 'cover';
-                                that.videoCoverUploader.upload(fileId);
-                            });
-                        }
-                    }
-                }else if(coverType == 0){
-                    // 上传视频第一帧
-                    that.getUploadInfo(that.videoCoverUploader, function (data) {
-                        //that.videoCoverUploader.options.formData.name = timer + 'cover';
-                        that.videoCoverUploader.upload(that.wuFile.id);
+                if (videoType == 0) {
+                    that.uploadWait((that.videoUploader.getFiles()[0]));
+                    that.uploadWait((that.videoCoverUploader.getFiles()[0]));
+                    that.uploadingVideo(videoType, function () {
+                        that.uploadingCover(coverType, function () {
+                            that.addVideoToJava(videoType);
+                        })
                     });
+                } else if (videoType == 1) {
+                    that.uploadWait((that.videoCoverUploader.getFiles()[0]));
+                    that.uploadingCover(coverType, function () {
+                        that.addVideoToJava(videoType);
+                    })
                 }
+
             });
+        },
+
+        uploadingCover: function (coverType, cb) {
+            var that = this;
+
+            var file_name = that.videoCoverUploader.getFiles()[0];
+
+            if(file_name.name.indexOf('@') !== -1){
+                cobra._msgBox.error('上传的文件含有"@"符号，请修改文件名称后重新上传');
+                return false;
+            }
+
+            if (coverType == 1) {
+                // 上传本地图片
+                for (var i = 0; i < $('.vumImageFileWrapper').length; i++) {
+                    var wrapper = $('.vumImageFileWrapper').eq(i);
+                    var fileId = wrapper.attr('id');
+                    var fail = wrapper.hasClass('uploadFail');
+                    var success = wrapper.hasClass('uploadDone');
+                    if (fail) {
+                        $('.vumImageFileWrapper').eq(i).find('div.uploader-error').remove()
+                    }
+                    if (!success) {
+                        // 上传成功的不再上传
+                        that.getUploadCoverInfo(that.videoCoverUploader, function (data) {
+                            //that.videoCoverUploader.options.formData.name = timer + 'cover';
+                            that.videoCoverUploader.upload(fileId);
+                            that.videoCoverUploader.on('uploadComplete', function (file) {
+                                cb && cb()
+                            });
+                        });
+                    }
+                }
+            } else if (coverType == 0) {
+                // 上传视频第一帧
+                that.getUploadCoverInfo(that.videoCoverUploader, function (data) {
+                    //that.videoCoverUploader.options.formData.name = timer + 'cover';
+                    that.videoCoverUploader.upload(that.wuFile.id);
+                    that.videoCoverUploader.on('uploadComplete', function (file) {
+                        cb && cb()
+                    });
+                });
+            }
+        },
+
+        uploadingVideo: function (videoType, cb) {
+            var that = this;
+
+            if (videoType == 0) {
+                // 上传video
+                for (var n = 0; n < $('.vumVideoFileWrapper').length; n++) {
+                    var videoWrapper = $('.vumVideoFileWrapper').eq(n);
+                    var videoFileId = videoWrapper.attr('id');
+                    var videoFail = videoWrapper.hasClass('uploadFail');
+                    var videosuccess = videoWrapper.hasClass('uploadDone');
+                    if (videoFail) {
+                        $('.vumVideoFileWrapper').eq(n).find('div.uploader-error').remove()
+                    }
+                    if (!videosuccess) {
+                        // 上传成功的不再上传
+                        that.getUploadVideoInfo(that.videoUploader, function (data) {
+                            console.log(that.videoUploader.getFiles());
+                            //that.videoUploader.options.filename = timer;
+                            that.videoUploader.upload(videoFileId);
+                            that.videoUploader.on('uploadComplete', function (file) {
+                                cb && cb()
+                            });
+                        });
+                    } else {
+
+                    }
+                }
+            }
         },
 
         /**
@@ -408,13 +572,16 @@
             $(document).on('click', '.vumSelect', function (e) {
                 e.preventDefault();
                 var $this = $(this);
+                // todo 单选每次都滞空
+                that.furlArr = [];
 
-                that.furl = $this.attr('data-furl');
+                that.furl = JSON.parse(decodeURIComponent($this.attr('data-info')));
                 that.furlArr.push(that.furl);
                 that.vumUploaderPopup.close();
                 that.videoUploader && that.videoUploader.destroy();
                 that.videoCoverUploader && that.videoCoverUploader.destroy();
                 that.options.selectSuccess(that.furlArr, $(that.elementTarget));
+                that.vumUploaderPopup.close();
             });
 
             // 视频选择 - 搜索已有视频
@@ -444,6 +611,14 @@
                 return new Blob([u8arr], {type: mime});
             }
 
+            videoUploader.on('startUpload', function () {
+                var id = (videoUploader.getFiles()[0]).id;
+                var $li = $('#' + id),
+                    $error = $li.find('div.uploader-error');
+
+                $error.remove();
+            });
+
             // 当有文件添加前触发
             videoUploader.on('beforeFileQueued', function (file) {
 
@@ -455,15 +630,18 @@
                     cobra._msgBox.error('当前图片的大小约为' + ((file.size / 1024) / 1024).toFixed(2) + 'MB,超出了单张上传最大为1M的限制 ！');
                     return false;
                 }
+
+                // 当第二次上传的时候，原先的图片删除掉
+                $('.vumImageFileWrapper.uploadDone').remove();
             });
 
             // 当有文件添加进来的时候
             videoUploader.on('fileQueued', function (file) {
 
-                var timer =  (new Date()).getTime();
-                file.name = timer;
-                file.source.name = timer;
-                file.source.source.name = timer;
+                var timer = (new Date()).getTime();
+                // file.name = timer;
+                // file.source.name = timer;
+                // file.source.source.name = timer;
                 console.log(file);
                 var coverType = $('#videoUploaderModal input[name=radio-poster]:checked').attr('data-type');
 
@@ -496,7 +674,7 @@
                             wuFile.source.type = 'image/jpeg';
                             wuFile.source.source.type = 'image/jpeg';
                             that.wuFile = wuFile;
-                            if(coverType == 0){
+                            if (coverType == 0) {
                                 that.videoCoverUploader.reset();
                                 // 注意：存在封面的图片上传对象里面
                                 that.videoCoverUploader.addFiles(wuFile);
@@ -570,37 +748,16 @@
             videoUploader.on('uploadSuccess', function (file, res, hds) {
                 console.log(hds);
                 // 这里就是上传成功！！
-
-                // if (res.code !== 10000) {
-                //     // 服务端返回上传失败
-                //     that.uploaderError(file, res);
-                // } else {
-                //     that.uploaderSuccess(file, res);
-                // }
-
-                // $('#' + file.id).addClass('upload-state-done');
-                // var $li = $('#' + file.id);
-                // var $error = $li.find('div.error');
-                // $li.addClass('uploadDone');
-                // $error.text('上传完成！');
-                // var urlObj = {
-                //     url: res.data.url,
-                //     thumb: res.data.thumb
-                // };
-                // that.uploadImgArr.push(urlObj);
-                // if ($('.uploadDone').length == $list.find('li').length) {
-                //     that.options.uploadSuccess(that.uploadImgArr, that.currentTrigger);
-                //     that.popupImgUploadModuleDialog.close();
-                // }
+                that.uploadSuccess(file, res)
             });
 
             // 文件上传失败，显示上传出错。
             videoUploader.on('uploadError', function (file, res, tr) {
                 // 获取状态值
                 var code = tr.getStatus();
-                if(code !== 200){
+                if (code !== 200) {
                     console.log(tr);
-                    that.uploaderError(file, res)
+                    that.uploadError(file, res)
                 }
             });
 
@@ -625,6 +782,14 @@
                 thumbWidth = 200 * ratio,
                 thumbHeight = 200 * ratio;
 
+            uploader.on('startUpload', function () {
+                var id = (uploader.getFiles()[0]).id;
+                var $li = $('#' + id),
+                    $error = $li.find('div.uploader-error');
+
+                $error.remove();
+            });
+
             // 当有文件添加前触发
             uploader.on('beforeFileQueued', function (file) {
 
@@ -635,6 +800,9 @@
                     cobra._msgBox.error('当前图片的大小约为' + ((file.size / 1024) / 1024).toFixed(2) + 'MB,超出了单张上传最大为1M的限制 ！');
                     return false;
                 }
+
+                // 当第二次上传的时候，原先的视频删除掉。
+                $('.vumVideoFileWrapper.uploadDone').remove();
             });
 
             // 当有文件添加进来的时候
@@ -694,39 +862,17 @@
             // 文件上传成功，给item添加成功class, 用样式标记上传成功。
             uploader.on('uploadSuccess', function (file, res) {
                 console.log(res);
-
                 // 这里就是上传成功！！
-
-                // if (res.code !== 10000) {
-                //     // 服务端返回上传失败
-                //     that.uploaderError(file, res);
-                // } else {
-                //     that.uploaderSuccess(file, res);
-                // }
-
-                // $('#' + file.id).addClass('upload-state-done');
-                // var $li = $('#' + file.id);
-                // var $error = $li.find('div.error');
-                // $li.addClass('uploadDone');
-                // $error.text('上传完成！');
-                // var urlObj = {
-                //     url: res.data.url,
-                //     thumb: res.data.thumb
-                // };
-                // that.uploadImgArr.push(urlObj);
-                // if ($('.uploadDone').length == $list.find('li').length) {
-                //     that.options.uploadSuccess(that.uploadImgArr, that.currentTrigger);
-                //     that.popupImgUploadModuleDialog.close();
-                // }
+                that.uploadSuccess(file, res)
             });
 
             // 文件上传失败，现实上传出错。
             uploader.on('uploadError', function (file, res, tr) {
                 // 获取状态值
                 var code = tr.getStatus();
-                if(code !== 200){
+                if (code !== 200) {
                     console.log(tr);
-                    that.uploaderError(file, res)
+                    that.uploadError(file, res)
                 }
             });
 
@@ -736,18 +882,39 @@
             });
         },
 
+        uploadWait: function (file, res) {
+            var $li = $('#' + file.id),
+                $error = $li.find('div.uploader-error');
+            if ($li.hasClass('uploadDone')) {
+                return false;
+            }
+            // 避免重复创建
+            if (!$error.length) {
+                $error = $('<div class="uploader-error wait"></div>').appendTo($li);
+            } else {
+                $error.addClass('wait');
+            }
+
+            $error.text('上传等待中...');
+            // $li.addClass('uploadFail')
+            // $('#videoUploaderModal .vum-uploader').text('重新上传');
+        },
+
         /**
          * 上传失败处理
          * @param file  文件
          * @param res   服务端回调
          */
-        uploaderError: function (file, res) {
+        uploadError: function (file, res) {
             var $li = $('#' + file.id),
                 $error = $li.find('div.uploader-error');
 
             // 避免重复创建
             if (!$error.length) {
                 $error = $('<div class="uploader-error"></div>').appendTo($li);
+            } else {
+                $error.removeClass('wait');
+                $error.addClass('error');
             }
 
             $error.text('上传失败');
@@ -756,12 +923,33 @@
         },
 
         /**
+         * 上传成功处理
+         * @param file  文件
+         * @param res   服务端回调
+         */
+        uploadSuccess: function (file, res) {
+            var $li = $('#' + file.id),
+                $error = $li.find('div.uploader-error');
+
+            // 避免重复创建
+            if (!$error.length) {
+                $error = $('<div class="uploader-error success"></div>').appendTo($li);
+            } else {
+                $error.removeClass('wait');
+                $error.addClass('success');
+            }
+
+            $error.text('上传成功！');
+            $li.addClass('uploadDone');
+        },
+
+        /**
          * removeOldImage()
          * 每次添加图片的时候，删除原来的图片。
          */
         removeOldImage: function (uploader, target) {
             var file = uploader.getFiles();
-            if(file.length > 0){
+            if (file.length > 0) {
                 for (var i = 0; i < target.length; i++) {
                     var id = target.eq(i).attr('data-id');
                     uploader.removeFile(id, true);
@@ -801,39 +989,45 @@
             var that = this;
 
             $.ajax({
-                type: 'post',
-                url: window.ossDomain + 'user_file.php',
-                dataType: 'json',
+                type: 'get',
+                url: that.videoListUrl,
+                dataType: 'jsonp',
                 data: {
-                    biz_code: that.options.biz_code || 'mockuai_demo',
-                    user_id: that.options.user_id || '38699',
-                    path_id: 0,                                  // 所属文件夹ID，（默认0,代表获取根目录下文件列表） 暂未启用文件夹
-                    keyword: that.search_key.keywords,           // 搜索的关键字
-                    order: order === undefined ? 'desc' : order, // 图片列表的排序
-                    page: that.pagecfg.page_id,
-                    num: that.pagecfg.page_size
+                    // biz_code: that.options.biz_code || 'mockuai_demo',
+                    // user_id: that.options.user_id || '38699',
+                    // path_id: 0,                                  // 所属文件夹ID，（默认0,代表获取根目录下文件列表） 暂未启用文件夹
+                    video_name: that.search_key.keywords,        // 搜索的关键字
+                    // order: order === undefined ? 'desc' : order, // 图片列表的排序
+                    current_page: that.pagecfg.page_id,
+                    page_size: that.pagecfg.page_size,
+                    need_page: true
                 },
                 success: function (d) {
+                    console.log(d);
+                    if (!that.handlerResponse(d)) {
+                        return;
+                    }
 
                     if (d.code === 10000) {
-                        var total = d.data.total_num;
+                        var total = d.data.total_count;
                         var template = _.template($('#j-vum-select-video-template').html());
                         // 模板渲染
                         $('#vumSelectDialog .imgList').html(template({
-                            items: d.data.list
+                            items: d.data.data
                         }));
 
                         // 修改时间显示
-                        for (var i = 0; i < $('.j-time').length; i++) {
-                            var element = $('.j-time').eq(i);
-                            var num = element.text();
-                            that.getLocalTime(num, element)
+                        // for (var i = 0; i < $('.j-time').length; i++) {
+                        //     var element = $('.j-time').eq(i);
+                        //     var num = element.text();
+                        //     that.getLocalTime(num, element)
 
-                        }
+                        // }
                         // 查看大图
                         for (var n = 0; n < $('.j-blank-link').length; n++) {
                             var href = $('.j-blank-link').eq(n).attr('href').split('.')[$('.j-blank-link').eq(n).attr('href').split('.').length - 1];
-                            var new_href = $('.j-blank-link').eq(n).attr('href') + '@1e_500w_500h_1c_0i_1o_90Q_1x.' + href;
+                            // var new_href = $('.j-blank-link').eq(n).attr('href') + '@1e_500w_500h_1c_0i_1o_90Q_1x.' + href;
+                            var new_href = $('.j-blank-link').eq(n).attr('href');
                             $('.j-blank-link').eq(n).attr('href', new_href)
                         }
 
@@ -874,6 +1068,18 @@
                     }
                 }
             });
+        },
+
+        // 接口请求结果处理
+        handlerResponse: function (data) {
+            if (data.code == 10000) {
+                return true;
+            } else if (data.code == 40000) {
+                location.href = '../seller_info/seller_login.html';
+                return false;
+            } else {
+                console.error(data.msg || 'error');
+            }
         }
     };
 

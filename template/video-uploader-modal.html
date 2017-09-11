@@ -82,8 +82,8 @@
         cursor: pointer;
         width: inherit;
         height: inherit;
-        background: none;
         padding: 0;
+        background: url(../style/images/icon_add.png) no-repeat center #fff;
     }
 
     #videoUploaderModal #vumImageUploader .webuploader-pick img {
@@ -161,6 +161,32 @@
         color: white;
         width: 100%;
         background: rgb(193, 46, 46);
+        height: 25px;
+        z-index: 10;
+        line-height: 25px;
+    }
+
+    #videoUploaderModal .uploader-error.success {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        text-align: center;
+        color: white;
+        width: 100%;
+        background: #449d44;
+        height: 25px;
+        z-index: 10;
+        line-height: 25px;
+    }
+
+    #videoUploaderModal .uploader-error.wait {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        text-align: center;
+        color: white;
+        width: 100%;
+        background: rgba(0,0,0,0.6);
         height: 25px;
         z-index: 10;
         line-height: 25px;
@@ -256,14 +282,14 @@
     <% if( items.length > 0 ){ %>
     <% _.each(items,function(item,index){ %>
     <tr>
-        <td class="tc"><a class="j-blank-link" target="_blank" href="<%= item.file_url %>"><img style="width: 60px;height: 60px;" src="<%= item.file_url %>"></a></td>
+        <td class="tc"><a class="j-blank-link" target="_blank" href="<%= item.video_url %>"><img style="width: 60px;height: 60px;" src="<%= item.shot_url %>"></a></td>
         <td>
-            <%= item.file_name %>
+            <%= item.video_name %>
         </td>
         <td class="j-time tc">
-            <%= item.create_time %>
+            <%= item.gmt_created %>
         </td>
-        <td class="tc"> <a href="javascript:;" class="vumSelect tc" data-furl="<%= item.file_url %>">选择</a> </td>
+        <td class="tc"> <a href="javascript:;" class="vumSelect tc" data-info="<%= encodeURIComponent(JSON.stringify(item)) %>">选择</a> </td>
     </tr>
     <% }) %>
     <% }else{ %>
