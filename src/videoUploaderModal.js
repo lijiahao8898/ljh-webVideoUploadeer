@@ -5,7 +5,6 @@
         this.elementTarget = ele;
 
         this.defaultOptions = {
-            wrapper: '',
             type: 0,                                    // type 0 展示视频选择列表 1 展示选择视频弹窗
             videoSize: 1024 * 1024 * 30,                // 单个视频的尺寸大小
             videoListNum: 1,                            // 支持视频的个数
@@ -354,15 +353,9 @@
         addEvent: function () {
             var that = this;
 
-            if (that.options.wrapper && that.options.wrapper !== '') {
-                $(that.options.wrapper).on('click', that.elementTarget, function () {
-                    that.openDialog(that.options.type)
-                });
-            } else {
-                $(that.elementTarget).on('click', function () {
-                    that.openDialog(that.options.type)
-                });
-            }
+            $(document).on('click', that.elementTarget.selector, function () {
+                that.openDialog(that.options.type)
+            });
         },
 
         /**
