@@ -1,4 +1,4 @@
-;(function ($, cobra, window, document) {
+;(function ($, toastr, window, document) {
 
     var uploaderVideo = function (ele, options) {
 
@@ -44,8 +44,19 @@
             this.posterUrl = this.host + 'upload_video_shot.do';
             this.callbackUrl = this.host + 'add_video.do';
             this.videoListUrl = this.host + 'query_video.do';
+            this.videoListUrl = './stub/list.json';
             this.search_key = {};
-            cobra._msgBox.init();
+
+            // 初始化提示框
+            toastr.options = ({
+                progressBar: true,
+                positionClass: "toast-top-center",
+                showDuration: 300,
+                hideDuration: 300,
+                timeOut: 1000,
+                extendedTimeOut: 1000
+            });
+
             this.addEvent();
             this.uploaderAddEvent();
             this.selectAddEvent();
@@ -172,7 +183,7 @@
             }
 
             if (!video_name || !image_url) {
-                cobra._msgBox.error('添加记录信息缺失！')
+                toastr.error('添加记录信息缺失！')
             }
             $.ajax({
                 url: this.callbackUrl,
@@ -193,18 +204,18 @@
                     }
 
                     if (data.code === 10000) {
-                        cobra._msgBox.done('添加记录成功！');
+                        toastr.success('添加记录成功！');
                         var p = [];
                         p.push(data.data);
                         that.options.uploaderSuccess(p, $(that.elementTarget));
                         that.vumUploaderPopup.close();
                     } else {
-                        cobra._msgBox.error('添加记录失败！');
+                        toastr.error('添加记录失败！');
                     }
 
                 },
                 fail: function (data) {
-                    cobra._msgBox.error('添加记录失败！')
+                    toastr.error('添加记录失败！')
                 }
             });
         },
@@ -401,10 +412,12 @@
                 } else if (type === '1') {
                     // 上传封面
                     // $('#vumImageUploader').show();
-                    var id = that.wuFile.id;
-                    that.videoCoverUploader.removeFile(id, true);
-                    console.log(that.videoCoverUploader.getFiles());
-                    $('#vumImageUploader .vumImageFileWrapper').remove();
+                    if(that.wuFile){
+                        var id = that.wuFile.id;
+                        that.videoCoverUploader.removeFile(id, true);
+                        console.log(that.videoCoverUploader.getFiles());
+                        $('#vumImageUploader .vumImageFileWrapper').remove();
+                    }
                 }
             });
 
@@ -428,7 +441,7 @@
                 console.log(coverType);
 
                 if ($('.vumImageFileWrapper.uploadDone').length >= 1 && $('.vumVideoFileWrapper.uploadDone').length >= 1) {
-                    cobra._msgBox.error('当前文件都已上传成功！请重新选择文件');
+                    toastr.error('当前文件都已上传成功！请重新选择文件');
                     return false;
                 }
 
@@ -436,12 +449,12 @@
                 if (videoType == 0) {
                     var videoQueue = that.videoUploader.getFiles();
                     if (videoQueue.length <= 0 || !videoQueue || videoQueue[0].type != 'video/mp4') {
-                        cobra._msgBox.error('未选择视频！');
+                        toastr.error('未选择视频！');
                         return;
                     }
                 } else if (videoType == 1) {
                     if (importVideo == '') {
-                        cobra._msgBox.error('网络视频未选择！');
+                        toastr.error('网络视频未选择！');
                         return;
                     }
                 }
@@ -451,14 +464,14 @@
                     // 视频第一帧
                     var videoCover = that.videoCoverUploader.getFiles();
                     if (videoCover.length <= 0 || !videoCover) {
-                        cobra._msgBox.error('视频图片截取失败，请联系管理员！');
+                        toastr.error('视频图片截取失败，请联系管理员！');
                         return;
                     }
                 } else if (coverType == 1) {
                     // 本地图片
                     var cover = that.videoCoverUploader.getFiles();
                     if (cover.length <= 0 || !cover) {
-                        cobra._msgBox.error('本地图片未选择！');
+                        toastr.error('本地图片未选择！');
                         return;
                     }
                 }
@@ -487,7 +500,7 @@
             var file_name = that.videoCoverUploader.getFiles()[0];
 
             if(file_name.name.indexOf('@') !== -1){
-                cobra._msgBox.error('上传的文件含有"@"符号，请修改文件名称后重新上传');
+                toastr.error('上传的文件含有"@"符号，请修改文件名称后重新上传');
                 return false;
             }
 
@@ -620,7 +633,7 @@
                     that.removeOldImage(videoUploader, $('#vumVideoUploader .vum-image-list'));
                 }
                 if (file.size > (that.options.videoSize)) {
-                    cobra._msgBox.error('当前图片的大小约为' + ((file.size / 1024) / 1024).toFixed(2) + 'MB,超出了单张上传最大为1M的限制 ！');
+                    toastr.error('当前视频的大小约为' + ((file.size / 1024) / 1024).toFixed(2) + 'MB,超出了上传最大为30M的限制 ！');
                     return false;
                 }
 
@@ -790,7 +803,7 @@
                 that.removeOldImage(uploader, $('#vumImageUploader .vum-image-list'));
 
                 if (file.size > 1048576) {
-                    cobra._msgBox.error('当前图片的大小约为' + ((file.size / 1024) / 1024).toFixed(2) + 'MB,超出了单张上传最大为1M的限制 ！');
+                    toastr.error('当前图片的大小约为' + ((file.size / 1024) / 1024).toFixed(2) + 'MB,超出了单张上传最大为1M的限制 ！');
                     return false;
                 }
 
@@ -982,9 +995,9 @@
             var that = this;
 
             $.ajax({
-                type: 'get',
+                type: 'post',
                 url: that.videoListUrl,
-                dataType: 'jsonp',
+                dataType: 'json',
                 data: {
                     // biz_code: that.options.biz_code || 'mockuai_demo',
                     // user_id: that.options.user_id || '38699',
@@ -1065,9 +1078,9 @@
 
         // 接口请求结果处理
         handlerResponse: function (data) {
-            if (data.code == 10000) {
+            if (data.code === 10000) {
                 return true;
-            } else if (data.code == 40000) {
+            } else if (data.code === 40000) {
                 location.href = '../seller_info/seller_login.html';
                 return false;
             } else {
@@ -1084,4 +1097,4 @@
         uv.init()
     }
 
-})(jQuery, cobra, window, document);
+})(jQuery, toastr, window, document);

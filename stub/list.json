@@ -1,0 +1,86 @@
+{
+  "code": 10000,
+  "msg": "请求处理成功",
+  "data": {
+    "data": [
+      {
+        "id": 42,
+        "video_name": "WeChatSight53.mp4",
+        "video_url": "http://video.mockuai.com/moxiaokuai/WeChatSight53.mp4",
+        "shot_url": "http://img.mockuai.com/moxiaokuai/111.jpg",
+        "video_type": 1,
+        "biz_code": "moxiaokuai",
+        "delete_mark": 0,
+        "gmt_created": "2017-10-02 20:17:09",
+        "gmt_modified": "2017-10-02 20:17:09"
+      },
+      {
+        "id": 41,
+        "video_name": "WeChatSight8.mp4",
+        "video_url": "http://video.mockuai.com/moxiaokuai/WeChatSight8.mp4",
+        "shot_url": "http://img.mockuai.com/moxiaokuai/1111.jpg",
+        "video_type": 1,
+        "biz_code": "moxiaokuai",
+        "delete_mark": 0,
+        "gmt_created": "2017-09-30 21:28:00",
+        "gmt_modified": "2017-09-30 21:28:00"
+      },
+      {
+        "id": 40,
+        "video_name": "WeChatSight19.mp4",
+        "video_url": "http://video.mockuai.com/moxiaokuai/WeChatSight19.mp4",
+        "shot_url": "http://img.mockuai.com/moxiaokuai/WeChatSight19cover",
+        "video_type": 1,
+        "biz_code": "moxiaokuai",
+        "delete_mark": 0,
+        "gmt_created": "2017-09-30 15:49:05",
+        "gmt_modified": "2017-09-30 15:49:05"
+      },
+      {
+        "id": 33,
+        "video_name": "WeChatSight8.mp4",
+        "video_url": "http://video.mockuai.com/moxiaokuai/WeChatSight8.mp4",
+        "shot_url": "http://img.mockuai.com/moxiaokuai/WeChatSight8cover",
+        "video_type": 1,
+        "biz_code": "moxiaokuai",
+        "delete_mark": 1,
+        "gmt_created": "2017-09-14 19:14:47",
+        "gmt_modified": "2017-09-17 20:02:04"
+      },
+      {
+        "id": 31,
+        "video_name": "007261a5483fbf8169f9e6a214c44074.mp4",
+        "video_url": "http://video.mockuai.com/moxiaokuai/007261a5483fbf8169f9e6a214c44074.mp4",
+        "shot_url": "http://img.mockuai.com/moxiaokuai/20170621182903136.jpg",
+        "video_type": 1,
+        "biz_code": "moxiaokuai",
+        "delete_mark": 0,
+        "gmt_created": "2017-09-14 14:34:23",
+        "gmt_modified": "2017-09-14 14:34:23"
+      },
+      {
+        "id": 30,
+        "video_name": "007261a5483fbf8169f9e6a214c44074.mp4",
+        "video_url": "http://video.mockuai.com/moxiaokuai/007261a5483fbf8169f9e6a214c44074.mp4",
+        "shot_url": "http://img.mockuai.com/moxiaokuai/007261a5483fbf8169f9e6a214c44074cover",
+        "video_type": 1,
+        "biz_code": "moxiaokuai",
+        "delete_mark": 0,
+        "gmt_created": "2017-09-12 01:08:29",
+        "gmt_modified": "2017-09-12 01:08:29"
+      },
+      {
+        "id": 29,
+        "video_name": "14d584dbbce10060ec32e77a4b4302e1.mp4",
+        "video_url": "http://video.mockuai.com/moxiaokuai/14d584dbbce10060ec32e77a4b4302e1.mp4",
+        "shot_url": "http://img.mockuai.com/moxiaokuai/14d584dbbce10060ec32e77a4b4302e1cover",
+        "video_type": 1,
+        "biz_code": "moxiaokuai",
+        "delete_mark": 0,
+        "gmt_created": "2017-09-12 01:06:31",
+        "gmt_modified": "2017-09-12 01:06:31"
+      }
+    ],
+    "total_count": 7
+  }
+}
